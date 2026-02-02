@@ -1,0 +1,18 @@
+# Packer
+packer/*.log
+packer/*.pem
+packer/output-*
+
+# Ansible
+*.retry
+ansible/inventory.ini
+
+# Secrets
+*.key
+*.pem
+*.env
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
