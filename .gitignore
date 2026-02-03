@@ -1,18 +1,18 @@
-# Packer
-packer/*.log
-packer/*.pem
-packer/output-*
+@@ -0,0 +1,17 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
 
-# Ansible
-*.retry
-ansible/inventory.ini
-
-# Secrets
-*.key
+# Sécurité & Clés
+.ssh/
 *.pem
-*.env
+*.key
+credentials.json
 
-# OS / IDE
+# OS & Divers
 .DS_Store
-.vscode/
-.idea/
+__pycache__/
+*.log
