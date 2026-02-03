@@ -1,45 +1,68 @@
-# packer/ubuntu-minecraft.pkr.hcl
-
 packer {
   required_plugins {
-    vmware = {
-      version = ">= 1.0.0"
-      source  = "github.com/hashicorp/vmware"
+    googlecompute = {
+      source  = "github.com/hashicorp/googlecompute"
+      version = ">= 1.1.0"
     }
     ansible = {
-      version = ">= 1.0.0"
       source  = "github.com/hashicorp/ansible"
+      version = ">= 1.0.0"
     }
   }
 }
 
-source "vmware-iso" "ubuntu" {
-  # Configuration pour VMware Workstation / Player
-  iso_url          = "https://releases.ubuntu.com/22.04/ubuntu-22.04.3-live-server-amd64.iso"
-  iso_checksum     = "file:https://releases.ubuntu.com/22.04/SHA256SUMS"
-  ssh_username     = "ubuntu"
-  ssh_password     = "ubuntu"
-  shutdown_command = "echo 'ubuntu' | sudo -S shutdown -P now"
-  
-  vm_name          = "minecloud-base-v1" 
-  cpus             = 2
-  memory           = 4096
-  disk_size        = 20000
-  headless         = false
-  
-  boot_command = [
-    "<wait>c<wait>linux /casper/vmlinuz --- autoinstall<enter><wait>",
-    "initrd /casper/initrd<enter><wait>",
-    "boot<enter>"
-  ]
+variable "project_id" {
+  type = string
+}
+
+variable "zone" {
+  type    = string
+  default = "europe-west1-b"
+}
+
+source "googlecompute" "minecloud" {
+  project_id   = var.project_id
+  zone         = var.zone
+  machine_type = "e2-medium"
+
+  ssh_username = "packer"
+
+  image_name   = "minecloud-base-v1"
+  image_family = "minecloud"
+
+  source_image_family     = "ubuntu-2204-lts"
+  source_image_project_id = ["ubuntu-os-cloud"]
 }
 
 build {
-  sources = ["source.vmware-iso.ubuntu"]
+  sources = ["source.googlecompute.minecloud"]
 
-  
+  provisioner "shell" {
+    inline = [
+      "sudo apt-get update",
+      "sudo apt-get install -y python3 python3-apt",
+
+      # Remote tmp Ansible simple et writable
+      "sudo mkdir -p /tmp/.ansible-tmp",
+      "sudo chmod 1777 /tmp/.ansible-tmp"
+    ]
+  }
+
   provisioner "ansible" {
-    playbook_file = "../ansible/playbook_packer.yml" 
-    user          = "ubuntu"
+    playbook_file = "../ansible/playbook-common.yml"
+    user          = "packer"
+
+    ansible_env_vars = [
+      "ANSIBLE_CONFIG=../ansible/ansible.cfg",
+      "ANSIBLE_HOST_KEY_CHECKING=False",
+      "ANSIBLE_REMOTE_TEMP=/tmp/.ansible-tmp",
+      "ANSIBLE_SCP_IF_SSH=True"
+    ]
+
+    extra_arguments = [
+      "-e", "ansible_python_interpreter=/usr/bin/python3",
+      "-e", "ansible_remote_tmp=/tmp/.ansible-tmp"
+    ]
   }
 }
+
