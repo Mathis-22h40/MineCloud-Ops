@@ -1,0 +1,6 @@
+---
+# ansible/playbook_packer.yml
+- hosts: all
+  become: yes
+  roles:
+    - common
