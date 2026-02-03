@@ -21,13 +21,12 @@ source "vmware-iso" "ubuntu" {
   ssh_password     = "ubuntu"
   shutdown_command = "echo 'ubuntu' | sudo -S shutdown -P now"
   
-  vm_name          = "minecloud-base-v1" # Nom demandé [cite: 29]
+  vm_name          = "minecloud-base-v1" 
   cpus             = 2
   memory           = 4096
   disk_size        = 20000
-  headless         = false # Mets à "true" si tu ne veux pas voir la fenêtre s'ouvrir
+  headless         = false
   
-  # Commande de boot simplifiée
   boot_command = [
     "<wait>c<wait>linux /casper/vmlinuz --- autoinstall<enter><wait>",
     "initrd /casper/initrd<enter><wait>",
@@ -38,7 +37,7 @@ source "vmware-iso" "ubuntu" {
 build {
   sources = ["source.vmware-iso.ubuntu"]
 
-  # Appel d'Ansible pour configurer l'image [cite: 28]
+  
   provisioner "ansible" {
     playbook_file = "../ansible/playbook_packer.yml" 
     user          = "ubuntu"
